@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Groovio - Home</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .track-card {
+            background-color: #282828;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            width: 300px;
+        }
+        .track-card img {
+            width: 100%;
+            border-radius: 5px;
+        }
+        .track-card h2 {
+            margin: 15px 0 5px 0;
+        }
+        .track-card p {
+            margin: 0;
+            color: #b3b3b3;
+        }
+    </style>
+</head>
+<body>
+
+    {% if track %}
+        <div class="track-card">
+            <img src="{{ track.album.images.0.url }}" alt="Album Art">
+            <h2>{{ track.name }}</h2>
+            <p>{{ track.artists.0.name }}</p>
+        </div>
+    {% else %}
+        <h1>Could not fetch track data.</h1>
+        <p>Please check your API key and terminal for errors.</p>
+    {% endif %}
+
+</body>
+</html>
