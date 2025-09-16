@@ -19,3 +19,30 @@ def get_track_details(track_id):
     else:
         print("Error:{response.status_code}")
         return None
+
+def search_for_tracks(query):
+    api_key = os.getenv("SPOTIFY_API_KEY")
+    url = "https://spotify23.p.rapidapi.com/search/"
+    
+    querystring = {
+        "q": query,
+        "type":"tracks",
+        "offset":"0",
+        "limit":"10",
+        "numberOfTopResults":"5"
+    }
+    
+    headers = {
+        "X-RapidAPI-Key": api_key,
+        "X-RapidApi-Host": "spotify23.p.rapidapi.com"
+    }
+    
+    response = requests.get(url, headers=headers, params=querystring)
+    
+    if response.status_code ==  200:
+        return response.json()
+    else:
+        print(f"Error during search: {response.status_code}")
+        print(response.text)
+        return None
+    

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Search Results</title>
+    <style>
+        body { background-color: #121212; color: white; font-family: Arial, sans-serif; padding: 20px; }
+        .search-container { text-align: center; margin-bottom: 40px; }
+        .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
+        .track-card { background-color: #282828; padding: 15px; border-radius: 8px; text-align: center; }
+        .track-card img { width: 100%; border-radius: 4px; }
+        .track-card h3 { margin: 10px 0 5px 0; font-size: 1em; }
+        .track-card p { margin: 0; color: #b3b3b3; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+
+    <div class="search-container">
+        <h1>Search Results</h1>
+        {% if query %}
+            <p>Showing results for: <strong>{{ query }}</strong></p>
+        {% endif %}
+    </div>
+
+    {% if results and results.tracks.items %}
+        <div class="results-grid">
+            {% for track_item in results.tracks.items %}
+                <div class="track-card">
+                    <img src="{{ track_item.data.albumOfTrack.coverArt.sources.0.url }}" alt="Album Art">
+                    <h3>{{ track_item.data.name }}</h3>
+                    <p>{{ track_item.data.artists.items.0.profile.name }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p style="text-align: center;">No results found for "{{ query }}". Try another search.</p>
+    {% endif %}
+
+</body>
+</html>

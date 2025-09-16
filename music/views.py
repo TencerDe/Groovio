@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpRequest, HttpResponse
-from .spotify_client import get_track_details
+from .spotify_client import get_track_details, search_for_tracks
 # Create your views here.
 
 def home(request):
@@ -13,5 +13,19 @@ def home(request):
     }
     return render(request, 'home.html')
 
-
+def search(request):
+    search_results = None
+    query = ""
+    
+    if request.method == 'POST':
+        query = request.POST.get('query','')
+        if query:
+            search_results = search_for_tracks(query)
+            
+    context = {
+        'results': search_results,
+        'query': query
+    }
               
+    return render(request, 'search_results.html', context)
+    
