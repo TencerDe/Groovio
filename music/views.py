@@ -1,31 +1,10 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpRequest, HttpResponse
-from .spotify_client import get_track_details, search_for_tracks
+from django.conf import settings
+from django.contrib.auth.decorators import login_required
+from datetime import datetime, timedelta
+from .spotify_api_utils import get_spotify_auth_url, get_spotify_tokens, get_user_profile, refresh_spotify_token
 # Create your views here.
 
-def home(request):
-    #This view will fetch data from Spotify API
-    track_id = '0VjIjW4GlUZAMYd2vXMi3b'
-    track_data = get_track_details(track_id)
-    track = track_data['tracks'][0] if track_data and track_data.get('tracks') else None
-    context = {
-        'track': track
-    }
-    return render(request, 'home.html')
 
-def search(request):
-    search_results = None
-    query = ""
-    
-    if request.method == 'POST':
-        query = request.POST.get('query','')
-        if query:
-            search_results = search_for_tracks(query)
-            
-    context = {
-        'results': search_results,
-        'query': query
-    }
-              
-    return render(request, 'search_results.html', context)
-    
+
