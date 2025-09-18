@@ -1,6 +1,7 @@
 import os
 import requests
 from urllib.parse import urlencode
+from datetime import datetime, timedelta
 
 
 SPOTIFY_AUTH_URL = 'https://accounts.spotify.com/authorize'
@@ -63,4 +64,81 @@ def get_user_profile(access_token):
     response = requests.get(f'{SPOTIFY_API_BASE_URL}/me', headers=headers)
     response.raise_for_status()
     return response.json()
+    
+def is_token_expired(request):
+    expires_at_str = request.session.get('spotify_token_expires_at')
+    if not expires_at_str:
+        return True
+    expires_at = datetime.fromisoformat(expires_at_str)
+    return datetime.now() >= (expires_at - timedelta(minutes=5))
+
+def get_spotify_access_token(request):
+    access_token = request.session.get('spotify_access_token')
+    refresh_token = request.session.get('spotify_refresh_token')
+    
+    if not access_token:
+        return None
+    
+    if is_token_expired(request):
+        if refresh_token:
+            try:
+                new_tokens = refresh_spotify_token(refresh_token)
+                request.session['spotify_access_token'] = new_tokens['access_tokens']
+                request.session['spotify_token_expires_at'] = (
+                    datetime.now() + timedelta(seconds=new_tokens['expires_in'])
+                ).isoformat()
+                return new_tokens['access_token']
+            except requests.exceptions.HTTPError as e:
+                print(f"Token refersh failed: {e}")
+                request.session.pop('spotify_access_token', None)
+                request.session.pop('spotify_refresh_token', None)
+                request.session.pop('spotify_token_expires_at', None)
+                return None
+            
+        else: 
+            return None
+    
+    return access_token
+    
+    
+def make_spotify_api_call(request, endpoint, method='GET', data=None):
+    access_token = get_spotify_access_token(request)
+    if not access_token:
+        return {'error':'No valid Spotify access token.'}
+    
+    headers = {
+        'Authorization':f'Bearer{access_token}',
+        'Content-Type':'application/json'
+    }
+    
+    url = f'{SPOTIFY_API_BASE_URL}{endpoint}'
+    
+    try:
+        if method == 'GET':
+            response = requests.get(url, headers=headers, params=data)
+        elif method == 'POST':
+            response = requests.get(url, headers=headers, json=data)
+        elif method == 'PUT':
+            response = requests.get(url, headers=headers, json=data)
+        elif method == 'DELETE':
+            response = requests.delete(url, headers=headers)
+        else:
+            return {'error':'Unsupported HTTP Method'}
+        
+        response.raise_for_status()
+        
+        if response.status_code ==  204:
+            return {}
+        
+        return response.json()
+       
+    except requests.exceptions.HTTPError as e:
+        if e.response.status_code ==  401:
+            request.session.pop('spotify_access_token', None)
+            request.session.pop('spotify_refresh_token', None)
+            request.session.pop('spotify_token_expires_at]', None)
+            return {'error':'Spotify token invalid or revoked. Please log in again'}
+        return {'error':f'Spotify API error:{e.response.status_code}-{e.response.text}'}
+    except requests.exceptions.RequestException as e:
+        return {'error':f'Network/Request Error: {e}'}
     
