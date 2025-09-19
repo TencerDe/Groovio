@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect
 from django.http import HttpRequest, HttpResponse
 from django.conf import settings
+from django.contrib.auth import login
+from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from datetime import datetime, timedelta
 from .spotify_api_utils import get_spotify_auth_url, get_spotify_tokens, get_user_profile, refresh_spotify_token, make_spotify_api_call
@@ -31,7 +33,17 @@ def spotify_call_back(request):
             request.session['spotify_token_expires_at'] = expiration_time.isoformat()
             
             user_profile = get_user_profile(access_token)
-            request.session['spotify_user_id'] = user_profile.get('id')
+            spotify_id = user_profile.get('id')
+            
+            user, created = User.objects.get_or_create(
+                username = spotify_id,
+                defaults= {
+                    'first_name': user_profile.get('display_name'),
+                    'email': user_profile.get('email')
+                }
+            )
+            login(request, user)
+            
             request.session['spotify_display_name'] = user_profile.get('display_name')
             request.session['spotify_profile_image'] = user_profile.get('images')[0]['url'] if user_profile.get('images') else None
             
@@ -64,34 +76,29 @@ def dashboard(request):
     
     user_top_artists = []
     user_top_tracks = []
-    user_playbacks = []
+    user_playlists = []
     recently_played = []
     
     top_artists_response = make_spotify_api_call(request, '/me/top/artists?limit=5')
     if top_artists_response and not top_artists_response.get('error'):
         user_top_artists = top_artists_response.get('items',[])
         
-    else:
-        if top_artists_response and 'token invalid' in top_artists_response.get('error','').lower():
-            return redirect('home')
+    
         
     top_tracks_response = make_spotify_api_call(request, '/me/top/tracks?limit=5')
     if top_tracks_response and not top_tracks_response.get('error'):
         user_top_tracks = top_tracks_response.get('items',[])
-    else:
-        pass 
+    
     
     playlists_response = make_spotify_api_call(request, '/me/playlist?limit=5')
     if playlists_response and not playlists_response.get('error'):
         user_playlists = playlists_response.get('items',[])
-    else:
-        pass
+    
     
     recently_played_response = make_spotify_api_call(request, '/me/player/recently_played?limit=5')
     if recently_played_response and not recently_played_response.get('error'):
         recently_played = recently_played_response.get('items',[])
-    else:
-        pass
+   
     
     context = {
         'display_name': display_name,
@@ -105,6 +112,32 @@ def dashboard(request):
         }
     return render(request, 'music/dashboard.html', context)
     
+
+@login_required
+def search(request):
+    """
+    Handles search queries and displays results from the Spotify API.
+    """
+    query = request.GET.get('q', '')
+    results = {}
+
+    if query:
+        # We'll use the 'data' parameter in make_spotify_api_call for GET request params
+        params = {
+            'q': query,
+            'type': 'track,artist,album', # Search for all three types
+            'limit': 12 # Get up to 12 results per type
+        }
+        search_response = make_spotify_api_call(request, '/search', data=params)
+
+        if search_response and not search_response.get('error'):
+            results = search_response
+
+    context = {
+        'query': query,
+        'results': results
+    }
+    return render(request, 'core/search_results.html', context)
 
 def home(request):
     return render(request, 'music/home.html')

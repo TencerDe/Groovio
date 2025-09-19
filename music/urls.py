@@ -5,5 +5,6 @@ urlpatterns = [
     path('login/spotify/', views.spotify_login, name = 'spotify_login'),
     path('callback/', views.spotify_call_back, name='spotify_call_back'),
     path('logout/spotify/', views.spotify_logout, name='spotify_logout'),
-    path('dashbaord/', views.dashboard, name='dashboard'),
+    path('dashboard/', views.dashboard, name='dashboard'),
+    path('search/', views.search, name='search'),
 ]

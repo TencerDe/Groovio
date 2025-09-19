@@ -8,7 +8,8 @@ SPOTIFY_AUTH_URL = 'https://accounts.spotify.com/authorize'
 SPOTIFY_TOKEN_URL = 'https://accounts.spotify.com/api/token'
 SPOTIFY_API_BASE_URL = 'https://api.spotify.com/v1'
 
-SCOPES = 'user-read-private user-read-email user-read-playback-state user-modify-playback-state user-read-recently-played user-top-read playlist-read-private user-library-read streaming'
+
+SCOPES = 'user-read-private user-read-email user-read-playback-state user-modify-playback-state user-read-recently-played user-top-read playlist-read-private user-library-read streaming app-remote-control user-follow-read'
 
 def get_spotify_auth_url():
     client_id = os.getenv('SPOTIFY_CLIENT_ID')
@@ -56,6 +57,24 @@ def refresh_spotify_token(refresh_token):
     )
     response.raise_for_status()
     return response.json()
+
+def refresh_spotify_token(refresh_token):
+    """Refreshes the Spotify access token using the refresh token."""
+    token_url = 'https://accounts.spotify.com/api/token'
+    headers = {
+        'Authorization': 'Basic ' + base64.b64encode(f"{SPOTIFY_CLIENT_ID}:{SPOTIFY_CLIENT_SECRET}".encode()).decode(),
+        'Content-Type': 'application/x-www-form-urlencoded'
+    }
+    data = {
+        'grant_type': 'refresh_token',
+        'refresh_token': refresh_token
+    }
+
+    # THIS IS THE LINE TO FIX: Change 'posts' to 'post'
+    response = requests.post(token_url, headers=headers, data=data) 
+    response.raise_for_status() # Raise an exception for HTTP errors
+    return response.json()
+
 
 def get_user_profile(access_token):
     headers = {

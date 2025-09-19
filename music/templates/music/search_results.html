@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Results for "{{ query }}"</title>
+    
+<style>
+        body { font-family: 'Montserrat', sans-serif; margin: 0; background-color: #f0f2f5; color: #333; }
+        .header { background-color: white; padding: 15px 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .main-content { padding: 30px; }
+        h1 { margin-bottom: 20px; }
+        .results-section { margin-bottom: 40px; }
+        .results-section h2 { font-size: 24px; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
+        .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
+        .result-card { background-color: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; }
+        .result-card img { width: 100%; max-width: 180px; aspect-ratio: 1/1; object-fit: cover; border-radius: 6px; margin-bottom: 10px; }
+        .result-card strong { display: block; font-size: 16px; margin-bottom: 5px; }
+        .result-card span { font-size: 14px; color: #666; }
+        .play-button { /* Copied from dashboard */
+            background-color: #1DB954; color: white; border: none; padding: 8px 12px;
+            border-radius: 5px; cursor: pointer; font-size: 14px; margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        
+<a href="{% url 'dashboard' %}" style="text-decoration: none; color: #333; font-weight: bold;">Back to Dashboard</a>
+    </div>
+
+    <div class="main-content">
+        {% if query %}
+            <h1>Search Results for "{{ query }}"</h1>
+
+            {% if results.tracks and results.tracks.items %}
+                <div class="results-section">
+                    <h2>Tracks</h2>
+                    <div class="results-grid">
+                        {% for track in results.tracks.items %}
+                            <div class="result-card">
+                                {% if track.album.images %}
+                                    <img src="{{ track.album.images.0.url }}" alt="{{ track.name }}">
+                                {% else %}
+                                    
+<img src="http://googleusercontent.com/image_generation_content/0" alt="No Image">
+                                {% endif %}
+                                <strong>{{ track.name }}</strong>
+                                <span>{{ track.artists.0.name }}</span>
+                                <button class="play-button" onclick="alert('Player logic needed here!')">▶</button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if results.artists and results.artists.items %}
+                <div class="results-section">
+                    <h2>Artists</h2>
+                    <div class="results-grid">
+                        {% for artist in results.artists.items %}
+                            <div class="result-card">
+                                {% if artist.images %}
+                                    <img src="{{ artist.images.0.url }}" alt="{{ artist.name }}">
+                                {% else %}
+                                    <img src="http://googleusercontent.com/image_generation_content/1" alt="No Image">
+                                {% endif %}
+                                <strong>{{ artist.name }}</strong>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if results.albums and results.albums.items %}
+                <div class="results-section">
+                    <h2>Albums</h2>
+                    <div class="results-grid">
+                        {% for album in results.albums.items %}
+                            <div class="result-card">
+                                {% if album.images %}
+                                    <img src="{{ album.images.0.url }}" alt="{{ album.name }}">
+                                {% else %}
+                                    <img src="http://googleusercontent.com/image_generation_content/2" alt="No Image">
+                                {% endif %}
+                                <strong>{{ album.name }}</strong>
+                                <span>{{ album.artists.0.name }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+        {% else %}
+            <h1>Search for Music</h1>
+            <p>Use the search bar in the header to find tracks, artists, and albums.</p>
+        {% endif %}
+    </div>
+
+    
+</body>
+</html>
